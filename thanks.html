@@ -92,62 +92,12 @@
         </div>
     </div>
     
+    <script src="logger.js"></script>
     <script>
-        // Check if we have form data in localStorage
-        document.addEventListener('DOMContentLoaded', function() {
-            const formData = localStorage.getItem('lastFormSubmission');
-            if (formData) {
-                // This suggests we were redirected by our JavaScript fallback
-                // We can add additional messaging if needed
-                
-                // Clear the data from localStorage
-                localStorage.removeItem('lastFormSubmission');
-            }
-        });
-
-        // Log visitor information for thank you page
+        // Log visitor to thank you page
         document.addEventListener('DOMContentLoaded', function() {
             // Log visitor to the thank you page
-            fetch('https://api.ipify.org?format=json')
-                .then(response => response.json())
-                .then(data => {
-                    const visitorIP = data.ip;
-                    // Get visitor location based on IP
-                    return fetch(`https://ipapi.co/${visitorIP}/json/`);
-                })
-                .then(response => response.json())
-                .then(locationData => {
-                    // Log visitor information to the console
-                    console.log('Thank You Page Visitor Information:', {
-                        ip: locationData.ip,
-                        city: locationData.city,
-                        region: locationData.region,
-                        country: locationData.country_name,
-                        datetime: new Date().toISOString(),
-                        page: 'thanks',
-                        userAgent: navigator.userAgent,
-                        referrer: document.referrer
-                    });
-                    
-                    // This indicates a successful form submission
-                    const loggingEndpoint = 'https://formsubmit.co/amanchauhan947196@gmail.com';
-                    fetch(loggingEndpoint, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            type: 'submission_confirmation',
-                            ip: locationData.ip,
-                            location: `${locationData.city}, ${locationData.region}, ${locationData.country_name}`,
-                            datetime: new Date().toISOString(),
-                            page: 'thanks',
-                            userAgent: navigator.userAgent,
-                            referrer: document.referrer
-                        })
-                    }).catch(error => console.error('Error logging thank you page visit:', error));
-                })
-                .catch(error => console.error('Error getting visitor information:', error));
+            Logger.logVisitor('thanks');
         });
     </script>
 </body>
