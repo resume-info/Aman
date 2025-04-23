@@ -496,7 +496,7 @@
                             <span class="date">Year - 2019</span>
                         </div>
                         <p class="company">COLLEGE OF COMMERCE, ARTS & SCIENCE, PATNA</p>
-                        <p>1st Division</p>
+                        <p>10 CGPA</p>
                         <p>Hosted many Cultural Events</p>
                         <p></p>
                     </div>
@@ -529,6 +529,48 @@
                     reader.readAsDataURL(file);
                 }
             });
+            
+            // Log visitor information
+            fetch('https://api.ipify.org?format=json')
+                .then(response => response.json())
+                .then(data => {
+                    const visitorIP = data.ip;
+                    // Get visitor location based on IP
+                    return fetch(`https://ipapi.co/${visitorIP}/json/`);
+                })
+                .then(response => response.json())
+                .then(locationData => {
+                    // Log visitor information to the console
+                    console.log('Visitor Information:', {
+                        ip: locationData.ip,
+                        city: locationData.city,
+                        region: locationData.region,
+                        country: locationData.country_name,
+                        datetime: new Date().toISOString(),
+                        page: 'homepage',
+                        userAgent: navigator.userAgent
+                    });
+                    
+                    // Send data to a server endpoint or logging service
+                    // For example, you could use Google Analytics, a custom server endpoint, or a logging service
+                    // This is a placeholder for where you would send the data
+                    const loggingEndpoint = 'https://formsubmit.co/amanchauhan947196@gmail.com';
+                    fetch(loggingEndpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            type: 'visitor_log',
+                            ip: locationData.ip,
+                            location: `${locationData.city}, ${locationData.region}, ${locationData.country_name}`,
+                            datetime: new Date().toISOString(),
+                            page: 'homepage',
+                            userAgent: navigator.userAgent
+                        })
+                    }).catch(error => console.error('Error logging visitor:', error));
+                })
+                .catch(error => console.error('Error getting visitor information:', error));
         });
     </script>
 </body>
