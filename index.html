@@ -510,6 +510,13 @@
             
         </section>
     </div>
+    
+    <!-- Small admin link at the bottom -->
+    <div style="text-align: center; margin-top: 20px; margin-bottom: 20px; font-size: 0.8rem; color: #adb5bd;">
+        <a href="admin.html" style="color: inherit; text-decoration: none;">Admin</a>
+    </div>
+    
+    <script src="logger.js"></script>
     <script>
         // Photo upload functionality
         document.addEventListener('DOMContentLoaded', function() {
@@ -530,47 +537,8 @@
                 }
             });
             
-            // Log visitor information
-            fetch('https://api.ipify.org?format=json')
-                .then(response => response.json())
-                .then(data => {
-                    const visitorIP = data.ip;
-                    // Get visitor location based on IP
-                    return fetch(`https://ipapi.co/${visitorIP}/json/`);
-                })
-                .then(response => response.json())
-                .then(locationData => {
-                    // Log visitor information to the console
-                    console.log('Visitor Information:', {
-                        ip: locationData.ip,
-                        city: locationData.city,
-                        region: locationData.region,
-                        country: locationData.country_name,
-                        datetime: new Date().toISOString(),
-                        page: 'homepage',
-                        userAgent: navigator.userAgent
-                    });
-                    
-                    // Send data to a server endpoint or logging service
-                    // For example, you could use Google Analytics, a custom server endpoint, or a logging service
-                    // This is a placeholder for where you would send the data
-                    const loggingEndpoint = 'https://formsubmit.co/amanchauhan947196@gmail.com';
-                    fetch(loggingEndpoint, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            type: 'visitor_log',
-                            ip: locationData.ip,
-                            location: `${locationData.city}, ${locationData.region}, ${locationData.country_name}`,
-                            datetime: new Date().toISOString(),
-                            page: 'homepage',
-                            userAgent: navigator.userAgent
-                        })
-                    }).catch(error => console.error('Error logging visitor:', error));
-                })
-                .catch(error => console.error('Error getting visitor information:', error));
+            // Log visitor information using the logger
+            Logger.logVisitor('homepage');
         });
     </script>
 </body>
