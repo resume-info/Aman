@@ -167,11 +167,13 @@
 
         <form id="contactForm" action="https://formsubmit.co/amanchauhan947196@gmail.com" method="POST">
             <!-- Form Submit Configuration -->
-            <input type="hidden" name="_next" value="https://resume-info.github.io/Aman/thanks.html">
+            <input type="hidden" name="_next" value="thanks.html">
             <input type="hidden" name="_subject" value="New contact form submission!">
             <input type="hidden" name="_template" value="table">
             <input type="hidden" name="_captcha" value="false">
-            <input type="hidden" name="_honey" value="">
+            <!-- Add hidden field for capturing IP and location -->
+            <input type="hidden" name="visitor_ip" id="visitor_ip">
+            <input type="hidden" name="visitor_location" id="visitor_location">
             <div class="form-group">
                 <label for="name">Name</label>
                 <input type="text" id="name" name="name" required>
@@ -216,27 +218,65 @@
     </div>
 
     <script>
-        // On first load, show a message about the activation email
+        // The form submission is now handled by FormSubmit.co service
+        // No JavaScript needed for basic form submission
+        
+        // Log visitor information and prepare form submission logging
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if this is the first time viewing the form
-            if (!localStorage.getItem('formInstructions')) {
-                alert('Important: After your first form submission, you will receive an activation email from FormSubmit.co. Please confirm it to enable the form functionality.');
-                localStorage.setItem('formInstructions', 'shown');
-            }
+            const contactForm = document.getElementById('contactForm');
+            const visitorIPField = document.getElementById('visitor_ip');
+            const visitorLocationField = document.getElementById('visitor_location');
             
-            // Add a backup redirection mechanism that doesn't interfere with the normal form submission
-            document.getElementById('contactForm').addEventListener('submit', function() {
-                // Store a marker that we've submitted the form
-                sessionStorage.setItem('formSubmitted', 'true');
-                
-                // Set a timeout to check if we're still on this page after submission
-                // If we are, it means FormSubmit.co didn't redirect us
-                setTimeout(function() {
-                    // If we're still on the contact page after 3 seconds, redirect manually
-                    if (window.location.href.indexOf('contact.html') > -1) {
-                        window.location.href = 'https://resume-info.github.io/Aman/thanks.html';
-                    }
-                }, 3000);
+            // Log visitor to the contact page
+            fetch('https://api.ipify.org?format=json')
+                .then(response => response.json())
+                .then(data => {
+                    const visitorIP = data.ip;
+                    // Store IP for form submission
+                    visitorIPField.value = visitorIP;
+                    
+                    // Get visitor location based on IP
+                    return fetch(`https://ipapi.co/${visitorIP}/json/`);
+                })
+                .then(response => response.json())
+                .then(locationData => {
+                    // Store location data for form submission
+                    const locationStr = `${locationData.city}, ${locationData.region}, ${locationData.country_name}`;
+                    visitorLocationField.value = locationStr;
+                    
+                    // Log visitor information to the console
+                    console.log('Contact Page Visitor Information:', {
+                        ip: locationData.ip,
+                        city: locationData.city,
+                        region: locationData.region,
+                        country: locationData.country_name,
+                        datetime: new Date().toISOString(),
+                        page: 'contact',
+                        userAgent: navigator.userAgent
+                    });
+                    
+                    // Send data to a server endpoint or logging service
+                    const loggingEndpoint = 'https://formsubmit.co/amanchauhan947196@gmail.com';
+                    fetch(loggingEndpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            type: 'visitor_log',
+                            ip: locationData.ip,
+                            location: locationStr,
+                            datetime: new Date().toISOString(),
+                            page: 'contact',
+                            userAgent: navigator.userAgent
+                        })
+                    }).catch(error => console.error('Error logging visitor:', error));
+                })
+                .catch(error => console.error('Error getting visitor information:', error));
+            
+            // Log form submission (will be sent along with the form data)
+            contactForm.addEventListener('submit', function() {
+                console.log('Form submitted with visitor information included');
             });
         });
     </script>
