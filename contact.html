@@ -217,66 +217,26 @@
         </div>
     </div>
 
+    <script src="logger.js"></script>
     <script>
-        // The form submission is now handled by FormSubmit.co service
-        // No JavaScript needed for basic form submission
-        
-        // Log visitor information and prepare form submission logging
+        // Log visitor and form submissions
         document.addEventListener('DOMContentLoaded', function() {
-            const contactForm = document.getElementById('contactForm');
-            const visitorIPField = document.getElementById('visitor_ip');
-            const visitorLocationField = document.getElementById('visitor_location');
-            
             // Log visitor to the contact page
-            fetch('https://api.ipify.org?format=json')
-                .then(response => response.json())
-                .then(data => {
-                    const visitorIP = data.ip;
-                    // Store IP for form submission
-                    visitorIPField.value = visitorIP;
-                    
-                    // Get visitor location based on IP
-                    return fetch(`https://ipapi.co/${visitorIP}/json/`);
-                })
-                .then(response => response.json())
-                .then(locationData => {
-                    // Store location data for form submission
-                    const locationStr = `${locationData.city}, ${locationData.region}, ${locationData.country_name}`;
-                    visitorLocationField.value = locationStr;
-                    
-                    // Log visitor information to the console
-                    console.log('Contact Page Visitor Information:', {
-                        ip: locationData.ip,
-                        city: locationData.city,
-                        region: locationData.region,
-                        country: locationData.country_name,
-                        datetime: new Date().toISOString(),
-                        page: 'contact',
-                        userAgent: navigator.userAgent
-                    });
-                    
-                    // Send data to a server endpoint or logging service
-                    const loggingEndpoint = 'https://formsubmit.co/amanchauhan947196@gmail.com';
-                    fetch(loggingEndpoint, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            type: 'visitor_log',
-                            ip: locationData.ip,
-                            location: locationStr,
-                            datetime: new Date().toISOString(),
-                            page: 'contact',
-                            userAgent: navigator.userAgent
-                        })
-                    }).catch(error => console.error('Error logging visitor:', error));
-                })
-                .catch(error => console.error('Error getting visitor information:', error));
+            Logger.logVisitor('contact');
             
-            // Log form submission (will be sent along with the form data)
+            // Set up form submission logging
+            const contactForm = document.getElementById('contactForm');
             contactForm.addEventListener('submit', function() {
-                console.log('Form submitted with visitor information included');
+                // Create form data object to log
+                const formData = {
+                    name: document.getElementById('name').value,
+                    email: document.getElementById('email').value,
+                    subject: document.getElementById('subject').value,
+                    message: document.getElementById('message').value.substring(0, 50) + '...' // Truncate for privacy
+                };
+                
+                // Log the form submission
+                Logger.logFormSubmission(formData);
             });
         });
     </script>
