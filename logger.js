@@ -1,6 +1,7 @@
 /**
  * Website Logger
  * Logs visitor information and stores it in localStorage with ability to download logs
+ * Also sends logs to MongoDB Atlas
  */
 
 // Logger object to handle all logging operations
@@ -32,8 +33,8 @@ const Logger = {
         // Save back to localStorage
         localStorage.setItem('visitor_logs', JSON.stringify(logs));
         
-        // Send to server if possible (using the same FormSubmit endpoint)
-        this.sendToServer(logData);
+        // Send to MongoDB via API
+        this.sendToDatabase(logData);
     },
     
     // Log visitor information
@@ -128,7 +129,7 @@ const Logger = {
             .then(response => response.json());
     },
     
-    // Send log to server
+    // Send log to FormSubmit (legacy system - can be kept as backup)
     sendToServer: function(logData) {
         const loggingEndpoint = 'https://formsubmit.co/amanchauhan947196@gmail.com';
         fetch(loggingEndpoint, {
@@ -140,7 +141,37 @@ const Logger = {
                 type: 'log_entry',
                 log_data: logData
             })
-        }).catch(error => console.error('Error sending log to server:', error));
+        }).catch(error => console.error('Error sending log to FormSubmit:', error));
+    },
+    
+    // Send log to MongoDB database via API
+    sendToDatabase: function(logData) {
+        // Backend API endpoint for logs
+        const dbEndpoint = '/api/logs';
+        
+        fetch(dbEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(logData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Log successfully saved to MongoDB:', data);
+            // Also send to FormSubmit as backup
+            this.sendToServer(logData);
+        })
+        .catch(error => {
+            console.error('Error saving log to MongoDB:', error);
+            // Fall back to FormSubmit if MongoDB fails
+            this.sendToServer(logData);
+        });
     },
     
     // Generate and download log file
